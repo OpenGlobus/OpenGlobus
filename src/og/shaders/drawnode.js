@@ -2,9 +2,9 @@
  * @module og/shaders/drawnode
  */
 
-'use strict';
+"use strict";
 
-import { Program } from '../webgl/Program.js';
+import { Program } from "../webgl/Program.js";
 
 export function drawnode_screen_nl() {
     return new Program("drawnode_screen_nl", {
@@ -27,8 +27,7 @@ export function drawnode_screen_nl() {
             aTextureCoord: "vec2"
         },
 
-        vertexShader:
-            `attribute vec3 aVertexPositionHigh;
+        vertexShader: `attribute vec3 aVertexPositionHigh;
             attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
 
@@ -57,8 +56,7 @@ export function drawnode_screen_nl() {
                 /*gl_Position = projectionViewMatrix * vec4(aVertexPosition + normalize(aVertexPosition) * height, 1.0);*/
             }`,
 
-        fragmentShader:
-        `precision highp float;
+        fragmentShader: `precision highp float;
             uniform vec4 tileOffsetArr[5];
             uniform vec4 visibleExtentOffsetArr[5];
             uniform vec4 transparentColorArr[5];
@@ -137,8 +135,7 @@ export function drawnode_screen_wl() {
             aTextureCoord: "vec2"
         },
 
-        vertexShader:
-            `attribute vec3 aVertexPositionHigh;
+        vertexShader: `attribute vec3 aVertexPositionHigh;
             attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
 
@@ -173,8 +170,7 @@ export function drawnode_screen_wl() {
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
-        fragmentShader:
-        `precision highp float;
+        fragmentShader: `precision highp float;
 
             #define MAX_POINT_LIGHTS 1
             #define MAX_OVERLAYS 5
@@ -321,8 +317,7 @@ export function drawnode_screen_wl_webgl2() {
             aTextureCoord: "vec2"
         },
 
-        vertexShader:
-            `#version 300 es
+        vertexShader: `#version 300 es
 
             in vec3 aVertexPositionHigh;
             in vec3 aVertexPositionLow;
@@ -359,8 +354,7 @@ export function drawnode_screen_wl_webgl2() {
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
-        fragmentShader:
-            `#version 300 es
+        fragmentShader: `#version 300 es
 
             precision highp float;
 
@@ -406,7 +400,10 @@ export function drawnode_screen_wl_webgl2() {
             void main(void) {
 
                 float overGround = 1.0 - step(0.1, v_height);
-                vec3 normal = normalize(normalMatrix * ((texture(uNormalMap, vTextureCoord.zw).rgb - 0.5) * 2.0));
+
+                vec3 n = texture(uNormalMap, vTextureCoord.zw).rgb;
+
+                vec3 normal = normalize(normalMatrix * ( (n - .5) * 2.0));
                 vec3 lightDirection = normalize(lightsPositions[0].xyz - v_vertex.xyz * lightsPositions[0].w);
                 vec3 eyeDirection = normalize(-v_vertex.xyz);
                 vec3 reflectionDirection = reflect(-lightDirection, normal);
@@ -424,6 +421,7 @@ export function drawnode_screen_wl_webgl2() {
 
                 vec4 t = texture( defaultTexture, vTextureCoord.xy );
                 fragColor = vec4(t.rgb * lightWeighting + night + spec, t.a);
+                //fragColor = vec4(n, t.a);
                 if( samplerCount == 0 ) return;
 
 
@@ -500,8 +498,7 @@ export function drawnode_colorPicking() {
             aTextureCoord: "vec2"
         },
 
-        vertexShader:
-            `attribute vec3 aVertexPositionHigh;
+        vertexShader: `attribute vec3 aVertexPositionHigh;
             attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
 
@@ -526,8 +523,7 @@ export function drawnode_colorPicking() {
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
-        fragmentShader:
-        `precision highp float;
+        fragmentShader: `precision highp float;
             uniform vec4 tileOffsetArr[5];
             uniform vec4 visibleExtentOffsetArr[5];
             uniform vec4 transparentColorArr[5];
@@ -615,8 +611,7 @@ export function drawnode_heightPicking() {
             aTextureCoord: "vec2"
         },
 
-        vertexShader:
-            `attribute vec3 aVertexPositionHigh;
+        vertexShader: `attribute vec3 aVertexPositionHigh;
             attribute vec3 aVertexPositionLow;
             attribute vec2 aTextureCoord;
 
@@ -644,9 +639,8 @@ export function drawnode_heightPicking() {
                 vTextureCoord = aTextureCoord;
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
-            
-        fragmentShader:
-        `precision highp float;
+
+        fragmentShader: `precision highp float;
             uniform sampler2D defaultTexture;
             uniform vec4 tileOffsetArr[5];
             uniform vec4 visibleExtentOffsetArr[5];
@@ -730,8 +724,7 @@ export function drawnode_depth() {
             aTextureCoord: "vec2"
         },
 
-        vertexShader:
-            `#version 300 es
+        vertexShader: `#version 300 es
             in vec3 aVertexPositionHigh;
             in vec3 aVertexPositionLow;
             in vec2 aTextureCoord;
@@ -759,8 +752,7 @@ export function drawnode_depth() {
                 gl_Position = projectionMatrix * viewMatrixRTE * vec4(highDiff + lowDiff, 1.0);
             }`,
 
-        fragmentShader:
-            `#version 300 es
+        fragmentShader: `#version 300 es
             precision highp float;
             uniform sampler2D defaultTexture;
             uniform vec4 tileOffsetArr[5];

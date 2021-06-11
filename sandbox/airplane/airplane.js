@@ -1,18 +1,18 @@
-'use strict';
+"use strict";
 
-import * as math from '../../src/og/math.js';
-import { RADIANS, MAX32 } from '../../src/og/math.js';
-import { SimpleNavigation } from '../../src/og/control/SimpleNavigation.js';
-import { RenderNode } from '../../src/og/scene/RenderNode.js';
-import { Program } from '../../src/og/webgl/Program.js';
-import { Vec3 } from '../../src/og/math/Vec3.js';
-import { Mat4 } from '../../src/og/math/Mat4.js';
-import { Quat } from '../../src/og/math/Quat.js';
-import { Globe } from '../../src/og/Globe.js';
-import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
-import { XYZ } from '../../src/og/layer/XYZ.js';
-import { LonLat } from '../../src/og/LonLat.js';
-import { Planet } from '../../src/og/scene/Planet.js';
+import * as math from "../../src/og/math.js";
+import { RADIANS, MAX32 } from "../../src/og/math.js";
+import { SimpleNavigation } from "../../src/og/control/SimpleNavigation.js";
+import { RenderNode } from "../../src/og/scene/RenderNode.js";
+import { Program } from "../../src/og/webgl/Program.js";
+import { Vec3 } from "../../src/og/math/Vec3.js";
+import { Mat4 } from "../../src/og/math/Mat4.js";
+import { Quat } from "../../src/og/math/Quat.js";
+import { Globe } from "../../src/og/Globe.js";
+import { GlobusTerrain } from "../../src/og/terrain/GlobusTerrain.js";
+import { XYZ } from "../../src/og/layer/XYZ.js";
+import { LonLat } from "../../src/og/LonLat.js";
+import { Planet } from "../../src/og/scene/Planet.js";
 
 const MODEL_FORWARD = new Vec3(0.0, 0.0, -1.0);
 const MAX_SCALE = 0.007;
@@ -107,7 +107,9 @@ class Planemarker {
         this._planet.ellipsoid.lonLatToCartesianRes(this._lonLatAlt, this._posCart);
         this._qNorthFrame = Planet.getBearingNorthRotationQuat(this._posCart);
 
-        let qq = Quat.yRotation(this._yaw * RADIANS).mul(this._qNorthFrame).conjugate();
+        let qq = Quat.yRotation(this._yaw * RADIANS)
+            .mul(this._qNorthFrame)
+            .conjugate();
         this.orientation = qq.mulVec3(MODEL_FORWARD).normalize();
 
         this._uOrientation[0] = this.orientation.x;
@@ -116,34 +118,33 @@ class Planemarker {
     }
 
     init() {
+        this._scene.renderer.handler.addProgram(
+            new Program("AirplaneShader", {
+                uniforms: {
+                    viewMatrix: "mat4",
+                    projectionMatrix: "mat4",
+                    normalMatrix: "mat3",
 
-        this._scene.renderer.handler.addProgram(new Program("AirplaneShader", {
-            uniforms: {
-                viewMatrix: 'mat4',
-                projectionMatrix: 'mat4',
-                normalMatrix: 'mat3',
+                    direction: "vec3",
+                    scale: "float",
+                    color: "vec4",
+                    uScaleByDistance: "vec3",
+                    pitchRoll: "vec2",
 
-                direction: 'vec3',
-                scale: 'float',
-                color: 'vec4',
-                uScaleByDistance: 'vec3',
-                pitchRoll: 'vec2',
+                    positionHigh: "vec3",
+                    positionLow: "vec3",
+                    eyePositionHigh: "vec3",
+                    eyePositionLow: "vec3",
 
-                positionHigh: "vec3",
-                positionLow: "vec3",
-                eyePositionHigh: "vec3",
-                eyePositionLow: "vec3",
-
-                lightsPositions: 'vec4',
-                lightsParamsv: 'vec3',
-                lightsParamsf: 'float'
-            },
-            attributes: {
-                aVertexPosition: 'vec3',
-                aVertexNormal: 'vec3'
-            },
-            vertexShader:
-                `precision highp float;
+                    lightsPositions: "vec4",
+                    lightsParamsv: "vec3",
+                    lightsParamsf: "float"
+                },
+                attributes: {
+                    aVertexPosition: "vec3",
+                    aVertexNormal: "vec3"
+                },
+                vertexShader: `precision highp float;
 
             attribute vec3 aVertexPosition;
             attribute vec3 aVertexNormal; 
@@ -204,8 +205,7 @@ class Planemarker {
 
                 gl_Position = projectionMatrix * vPosition;
             }`,
-            fragmentShader:
-                `precision highp float;
+                fragmentShader: `precision highp float;
 
                 uniform vec4 color;
                 
@@ -236,36 +236,37 @@ class Planemarker {
                     lightWeighting = lightsParamsv[0] + lightsParamsv[1] * diffuseLightWeighting + lightsParamsv[2] * specularLightWeighting;
                     gl_FragColor = vec4(lightWeighting, 1.0) * color;
                 }`
-        }));
+            })
+        );
 
         //Create buffers
-        var vertices = [
-            -1.0, 0.0, 0.5,
-            0.0, 0.0, -0.5,
-            1.0, 0.0, 0.5
-        ];
+        var vertices = [-1.0, 0.0, 0.5, 0.0, 0.0, -0.5, 1.0, 0.0, 0.5];
 
-        this._vericesBuffer = this._scene.renderer.handler.createArrayBuffer(new Float32Array(vertices), 3, vertices.length / 3);
+        this._vericesBuffer = this._scene.renderer.handler.createArrayBuffer(
+            new Float32Array(vertices),
+            3,
+            vertices.length / 3
+        );
 
         //Create buffers
-        var normals = [
-            0.0, 1.0, 0.0,
-            0.0, 1.0, 0.0,
-            0.0, 1.0, 0.0
-        ];
+        var normals = [0.0, 1.0, 0.0, 0.0, 1.0, 0.0, 0.0, 1.0, 0.0];
 
-        this._normalsBuffer = this._scene.renderer.handler.createArrayBuffer(new Float32Array(normals), 3, normals.length / 3);
+        this._normalsBuffer = this._scene.renderer.handler.createArrayBuffer(
+            new Float32Array(normals),
+            3,
+            normals.length / 3
+        );
 
-        var cubeVertexIndices = [
-            0, 1, 2,
-            0, 2, 1
-        ];
+        var cubeVertexIndices = [0, 1, 2, 0, 2, 1];
 
-        this._indicesBuffer = this._scene.renderer.handler.createElementArrayBuffer(new Uint16Array(cubeVertexIndices), 1, cubeVertexIndices.length);
+        this._indicesBuffer = this._scene.renderer.handler.createElementArrayBuffer(
+            new Uint16Array(cubeVertexIndices),
+            1,
+            cubeVertexIndices.length
+        );
     }
 
     draw() {
-
         var r = this._scene.renderer;
         var sh = r.handler.programs.AirplaneShader;
         var p = sh._program,
@@ -274,7 +275,10 @@ class Planemarker {
 
         sh.activate();
 
-        let t = 1.0 - (r.activeCamera._lonLat.height - MAX_SCALE_HEIGHT) / (MIN_SCALE_HEIGHT - MAX_SCALE_HEIGHT);
+        let t =
+            1.0 -
+            (r.activeCamera._lonLat.height - MAX_SCALE_HEIGHT) /
+                (MIN_SCALE_HEIGHT - MAX_SCALE_HEIGHT);
         this._distanceToCamera = this._posCart.distance(r.activeCamera.eye);
         this._viewScale = math.lerp(t < 0 ? 0 : t, this.scale, MIN_SCALE) * this._distanceToCamera;
         Vec3.doubleToTwoFloat32Array(this._posCart, this._posHigh, this._posLow);
@@ -306,14 +310,27 @@ class Planemarker {
         //gl.drawArrays(gl.TRIANGLES, 0, this._verticesBuffer.numItems);
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._normalsBuffer);
-        gl.vertexAttribPointer(p.attributes.aVertexNormal, this._normalsBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            p.attributes.aVertexNormal,
+            this._normalsBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ARRAY_BUFFER, this._vericesBuffer);
-        gl.vertexAttribPointer(p.attributes.aVertexPosition, this._vericesBuffer.itemSize, gl.FLOAT, false, 0, 0);
+        gl.vertexAttribPointer(
+            p.attributes.aVertexPosition,
+            this._vericesBuffer.itemSize,
+            gl.FLOAT,
+            false,
+            0,
+            0
+        );
 
         gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, this._indicesBuffer);
         gl.drawElements(gl.TRIANGLES, this._indicesBuffer.numItems, gl.UNSIGNED_SHORT, 0);
-
     }
 }
 
@@ -346,14 +363,14 @@ let osm = new XYZ("OpenStreetMap", {
     isBaseLayer: true,
     url: "http://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     visibility: true,
-    attribution: 'Data @ OpenStreetMap contributors, ODbL'
+    attribution: "Data @ OpenStreetMap contributors, ODbL"
 });
 
 let globe = new Globe({
-    "target": "globus",
-    "name": "Earth",
-    "terrain": new GlobusTerrain(),
-    "layers": [osm]
+    target: "globus",
+    name: "Earth",
+    terrain: new GlobusTerrain(),
+    layers: []
 });
 
 var skytraffic = new SkyTraffic();

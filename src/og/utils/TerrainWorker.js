@@ -1,4 +1,4 @@
-'use strict';
+"use strict";
 
 // import { QueueArray } from '../QueueArray.js';
 
@@ -7,15 +7,14 @@ class TerrainWorker {
         this._id = 0;
         this._segments = {};
 
-        this._workerQueue = [];//new QueueArray(numWorkers);
-        var elevationProgramm = new Blob([_programm], { type: 'application/javascript' });
+        this._workerQueue = []; //new QueueArray(numWorkers);
+        var elevationProgramm = new Blob([_programm], { type: "application/javascript" });
 
         var that = this;
 
         for (let i = 0; i < numWorkers; i++) {
             var w = new Worker(URL.createObjectURL(elevationProgramm));
             w.onmessage = function (e) {
-
                 that._segments[e.data.id]._terrainWorkerCallback(e.data);
                 that._segments[e.data.id] = null;
 
@@ -36,7 +35,7 @@ class TerrainWorker {
             this._workerQueue.push(w);
         }
 
-        this._pendingQueue = [];//new QueueArray(512);
+        this._pendingQueue = []; //new QueueArray(512);
     }
 
     check() {
@@ -47,47 +46,45 @@ class TerrainWorker {
     }
 
     make(segment, elevations) {
-
         if (segment.plainReady && segment.terrainIsLoading) {
-
             var _elevations = new Float32Array(elevations.length);
             _elevations.set(elevations);
 
             if (this._workerQueue.length) {
-
                 var w = this._workerQueue.pop();
 
                 this._segments[this._id] = segment;
 
-                w.postMessage({
-                    'elevations': _elevations,
-                    'this_plainVertices': segment.plainVertices,
-                    'this_plainNormals': segment.plainNormals,
-                    'this_normalMapVertices': segment.normalMapVertices,
-                    'this_normalMapNormals': segment.normalMapNormals,
-                    'heightFactor': segment.planet._heightFactor,
-                    'gridSize': segment.planet.terrain.gridSizeByZoom[segment.tileZoom],
-                    'noDataValues': segment.planet.terrain.noDataValues,
-                    'id': this._id++
-                }, [
+                w.postMessage(
+                    {
+                        elevations: _elevations,
+                        this_plainVertices: segment.plainVertices,
+                        this_plainNormals: segment.plainNormals,
+                        this_normalMapVertices: segment.normalMapVertices,
+                        this_normalMapNormals: segment.normalMapNormals,
+                        heightFactor: segment.planet._heightFactor,
+                        gridSize: segment.planet.terrain.gridSizeByZoom[segment.tileZoom],
+                        noDataValues: segment.planet.terrain.noDataValues,
+                        id: this._id++
+                    },
+                    [
                         _elevations.buffer,
                         segment.plainVertices.buffer,
                         segment.plainNormals.buffer,
                         segment.normalMapVertices.buffer,
                         segment.normalMapNormals.buffer
-                    ]);
-
+                    ]
+                );
             } else {
-                this._pendingQueue.push({ 'segment': segment, 'elevations': _elevations });
+                this._pendingQueue.push({ segment: segment, elevations: _elevations });
             }
         } else {
             this.check();
         }
     }
-};
+}
 
-const _programm =
-    `'use strict';
+const _programm = `'use strict';
     //
     //Terrain worker
     //
@@ -175,6 +172,13 @@ const _programm =
         this.x = x * length;
         this.y = y * length;
         this.z = z * length;
+        return this;
+    };
+
+    Vec3.prototype.addA = function(v) {
+        this.x += v.x;
+        this.y += v.y;
+        this.z += v.z;
         return this;
     };
 
@@ -413,6 +417,7 @@ const _programm =
                     var ne = e30.cross(e10).normalize();
                     var n0 = ne.add(sw).normalize();
 
+                    /*
                     normalMapNormals[vInd0] += n0.x;
                     normalMapNormals[vInd0 + 1] += n0.y;
                     normalMapNormals[vInd0 + 2] += n0.z;
@@ -428,6 +433,27 @@ const _programm =
                     normalMapNormals[vInd3] += n0.x;
                     normalMapNormals[vInd3 + 1] += n0.y;
                     normalMapNormals[vInd3 + 2] += n0.z;
+                    */
+
+                    let nn0 = new Vec3(normalMapNormals[vInd0], normalMapNormals[vInd0 + 1], normalMapNormals[vInd0 + 2]).addA(n0).normalize();
+                    normalMapNormals[vInd0] += nn0.x;
+                    normalMapNormals[vInd0 + 1] += nn0.y;
+                    normalMapNormals[vInd0 + 2] += nn0.z;
+
+                    let nne = new Vec3(normalMapNormals[vInd1], normalMapNormals[vInd1 + 1], normalMapNormals[vInd1 + 2]).addA(ne).normalize();
+                    normalMapNormals[vInd1] += nne.x;
+                    normalMapNormals[vInd1 + 1] += nne.y;
+                    normalMapNormals[vInd1 + 2] += nne.z;
+
+                    let nsw = new Vec3(normalMapNormals[vInd2], normalMapNormals[vInd2 + 1], normalMapNormals[vInd2 + 2]).addA(sw).normalize();
+                    normalMapNormals[vInd2] += nsw.x;
+                    normalMapNormals[vInd2 + 1] += nsw.y;
+                    normalMapNormals[vInd2 + 2] += nsw.z;
+
+                    let nnn0 = new Vec3(normalMapNormals[vInd3], normalMapNormals[vInd3 + 1], normalMapNormals[vInd3 + 2]).addA(n0).normalize();
+                    normalMapNormals[vInd3] += nnn0.x;
+                    normalMapNormals[vInd3 + 1] += nnn0.y;
+                    normalMapNormals[vInd3 + 2] += nnn0.z;
                 }
             }
 
@@ -437,7 +463,6 @@ const _programm =
             normalMapVertices = new Float64Array(gsgs3);
             normalMapVerticesHigh = new Float32Array(gsgs3);
             normalMapVerticesLow = new Float32Array(gsgs3);
-            normalMapNormals = new Float32Array(gsgs3);
 
             var oneSize = tgs / fileGridSize;
             var h, inside_i, inside_j, v_i, v_j;
