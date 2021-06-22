@@ -7,13 +7,14 @@ import { GlobusTerrain } from '../../src/og/terrain/GlobusTerrain.js';
 import { LonLat } from '../../src/og/LonLat.js';
 import { Vec3 } from '../../src/og/math/Vec3.js';
 import { XYZ } from '../../src/og/layer/XYZ.js';
+import { Ellipsoid } from "../../src/og/ellipsoid/Ellipsoid.js";
 
 function rnd(min, max) {
     return Math.random() * (max - min) + min;
 }
 
 let entities = [],
-    colors = ['red', 'orange', 'yellow', 'green', 'lightblue', 'darkblue', 'purple']
+    colors = ['red', 'orange', 'yellow', 'green', 'lightblue', 'darkblue', 'purple'];
 
 for (let i = 0; i < 5000; i++) {
     entities.push(new Entity({
@@ -41,7 +42,7 @@ carrots.events.on("draw", function (c) {
     c.each(function (e) {
         let c = e.getLonLat();
         let ll = globus.planet.ellipsoid.getBearingDestination(c, e.properties.bearing, 2000);
-        e.properties.bearing = globus.planet.ellipsoid.getFinalBearing(c, ll);
+        e.properties.bearing = Ellipsoid.getFinalBearing(c, ll);
         e.setLonLat(new LonLat(ll.lon, ll.lat, c.height));
         e.billboard.setRotation(e.billboard.getRotation() + 0.01);
     });
@@ -70,7 +71,6 @@ let sat = new XYZ("MapQuest Satellite", {
     attribution: '@2014 MapQuest - Portions @2014 "Map data @ <a target="_blank" href="http://www.openstreetmap.org/">OpenStreetMap</a> and contributors, <a target="_blank" href="http://opendatacommons.org/licenses/odbl/"> CC-BY-SA</a>"'
 });
 
-
 let globus = new Globe({
     "target": "globus",
     "name": "Earth",
@@ -81,3 +81,5 @@ let globus = new Globe({
 carrots.addTo(globus.planet);
 
 globus.planet.flyLonLat(new LonLat(54.5, 43.5, 20108312));
+
+window.globus = globus;
